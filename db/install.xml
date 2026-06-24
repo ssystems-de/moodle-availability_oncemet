@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="availability/condition/oncemet/db" VERSION="2026042000" COMMENT="XMLDB file for availability_oncemet"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="availability_oncemet" COMMENT="Stored oncemet availability unlock records">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="User who met the condition"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Course containing the restricted item"/>
+        <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Course module id when restriction is on an activity, 0 otherwise"/>
+        <FIELD NAME="sectionid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Course section id when restriction is on a section, 0 otherwise"/>
+        <FIELD NAME="availabilityuuid" TYPE="char" LENGTH="36" NOTNULL="true" SEQUENCE="false" COMMENT="Stable Once met instance identifier as UUID"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Time the unlock was stored"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="userid-courseid-cmid-sectionid-uuid" UNIQUE="true" FIELDS="userid, courseid, cmid, sectionid, availabilityuuid" COMMENT="One unlock per user, context and Once met instance"/>
+        <INDEX NAME="cmid" UNIQUE="false" FIELDS="cmid" COMMENT="Lookup of all unlocks of an activity, used by the event observers and the privacy provider"/>
+        <INDEX NAME="sectionid" UNIQUE="false" FIELDS="sectionid" COMMENT="Lookup of all unlocks of a course section, used by the event observers"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

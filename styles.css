@@ -1,0 +1,9 @@
+/* Availability OnceMet - Styles. */
+
+/* The collapsed availability excerpt of an activity or course section is built by core from the
+   list header and the first entry of the restriction list. The nested restrictions of a Once met
+   restriction are part of that first entry, so they would be shown in full within the excerpt,
+   which is meant to be a single line of text. */
+.availability-excerpt .availability-oncemet-restrictions {
+    display: none;
+}
