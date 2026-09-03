@@ -1,7 +1,7 @@
 moodle-availability_oncemet
 ============================
 
-[![Moodle Plugin CI](https://github.com/ssystems-de/moodle-availability_oncemet/actions/workflows/moodle-plugin-ci.yml/badge.svg?branch=main)](https://github.com/ssystems-de/moodle-availability_oncemet/actions?query=workflow%3A%22Moodle+Plugin+CI%22+branch%3Amain)
+[![Moodle Plugin CI](https://github.com/ssystems-de/moodle-availability_oncemet/actions/workflows/moodle-plugin-ci.yml/badge.svg?branch=MOODLE_502_STABLE)](https://github.com/ssystems-de/moodle-availability_oncemet/actions?query=workflow%3A%22Moodle+Plugin+CI%22+branch%3AMOODLE_502_STABLE)
 
 Moodle availability plugin which permanently remembers nested access restrictions once they have been fulfilled.
 
