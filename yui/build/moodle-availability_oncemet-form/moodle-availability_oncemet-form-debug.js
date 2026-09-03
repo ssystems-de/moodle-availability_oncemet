@@ -271,16 +271,23 @@ M.availability_oncemet.form.confirmRemoval = function(e) {
     e.preventDefault();
     e.stopImmediatePropagation();
 
-    M.util.show_confirm_dialog(e, {
-        title: M.util.get_string('confirmremove_title', 'availability_oncemet'),
-        message: M.util.get_string('confirmremove_message', 'availability_oncemet'),
-        continuelabel: M.util.get_string('confirmremove_continue', 'availability_oncemet'),
-        dialogtype: 'delete',
-        callback: function() {
+    // M.util.show_confirm_dialog() would be the usual way to ask this, but it only forwards a custom
+    // title and dialogtype to core/notification as of Moodle 5.2 (MDL-87281). Calling
+    // core/notification directly keeps the delete-styled dialog with its own title on Moodle 5.1 too.
+    require(['core/notification'], function(Notification) {
+        Notification.deleteCancelPromise(
+            M.util.get_string('confirmremove_title', 'availability_oncemet'),
+            M.util.get_string('confirmremove_message', 'availability_oncemet'),
+            M.util.get_string('confirmremove_continue', 'availability_oncemet')
+        ).then(function() {
             // Repeat the very click which was held back, this time letting it pass.
             removeLink.setAttribute('data-oncemet-confirmed', '1');
             removeLink.click();
-        }
+            return;
+        }).catch(function() {
+            // The teacher cancelled the removal.
+            return;
+        });
     });
 };
 
