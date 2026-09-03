@@ -178,7 +178,7 @@ final class observer_test extends \advanced_testcase {
         $this->create_unlock(['cmid' => $page1->cmid], 'instance-cm1');
         $this->create_unlock(['cmid' => $page2->cmid], 'instance-cm2');
 
-        \core_courseformat\formatactions::cm($this->course->id)->delete($page1->cmid);
+        course_delete_module($page1->cmid);
 
         $this->assertEquals(0, $DB->count_records('availability_oncemet', ['cmid' => $page1->cmid]));
         $this->assertEquals(1, $DB->count_records('availability_oncemet', ['cmid' => $page2->cmid]));
