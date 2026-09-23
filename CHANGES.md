@@ -4,7 +4,7 @@ moodle-availability_oncemet
 Changes
 -------
 
-### Unreleased
+### v5.2-r2
 
 * 2026-09-23 - Remove german language pack as the plugin is now translated in AMOS
 
