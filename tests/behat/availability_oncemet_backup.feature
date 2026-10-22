@@ -36,8 +36,8 @@ Feature: Copy courses and activities which contain Once met restrictions
     And the following "availability_oncemet > unlocks" exist:
       | user     | activity | instanceid |
       | learner1 | TARGET   | UNLOCK1    |
-    And I am on the "Course 1" course page logged in as "teacher1"
-    And I turn editing mode on
+    And I log in as "teacher1"
+    And I am on "Course 1" course homepage with editing mode on
     When I duplicate "Target" activity
     And I log out
     And I am on the "Course 1" course page logged in as "learner1"
