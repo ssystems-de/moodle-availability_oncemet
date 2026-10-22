@@ -4,6 +4,10 @@ moodle-availability_oncemet
 Changes
 -------
 
+### Unreleased
+
+* 2026-10-05 - Prepare compatibility for Moodle 5.3.
+
 ### v5.2-r3
 
 * 2026-10-23 - Bugfix: Do not store permanent unlocks for users who may ignore availability restrictions (teachers and managers by default) as they pass the restriction anyway, resolves #2.

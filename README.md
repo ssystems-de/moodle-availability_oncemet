@@ -8,7 +8,7 @@ Moodle availability plugin which permanently remembers nested access restriction
 Requirements
 ------------
 
-This plugin requires Moodle 5.2+
+This plugin requires Moodle 5.3+
 
 
 Motivation for this plugin
