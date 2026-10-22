@@ -77,8 +77,8 @@ Feature: Control who can add Once met restrictions
   # A course section has no context of its own, so the capability of a section form is checked in
   # the context of the course, see availability_oncemet\frontend::get_edit_context().
   Scenario: The restriction is offered in the section form
-    Given I am on the "Course 1" course page logged in as "teacher1"
-    And I turn editing mode on
+    Given I log in as "teacher1"
+    And I am on "Course 1" course homepage with editing mode on
     And I edit the section "1"
     And I expand all fieldsets
     When I click on "Add restriction..." "button"
@@ -88,8 +88,8 @@ Feature: Control who can add Once met restrictions
     Given the following "permission overrides" exist:
       | capability                       | permission | role           | contextlevel | reference |
       | availability/oncemet:addinstance | Prohibit   | editingteacher | Course       | C1        |
-    And I am on the "Course 1" course page logged in as "teacher1"
-    And I turn editing mode on
+    And I log in as "teacher1"
+    And I am on "Course 1" course homepage with editing mode on
     And I edit the section "1"
     And I expand all fieldsets
     When I click on "Add restriction..." "button"
