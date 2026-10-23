@@ -346,7 +346,7 @@ class condition extends \core_availability\condition {
     public function store_unlock(int $userid, info $info): void {
         global $DB;
 
-        if (!$this->can_store_unlock($userid)) {
+        if (!$this->can_store_unlock($userid, $info)) {
             return;
         }
 
@@ -389,11 +389,23 @@ class condition extends \core_availability\condition {
     /**
      * Whether an unlock record may be stored for the user.
      *
+     * Users who may ignore availability restrictions, which are teachers and managers by default, pass
+     * this restriction anyway. Core evaluates the restriction for them all the same and only checks the
+     * capability afterwards, see \core_course\cm_info::update_user_visible() and \section_info, so an
+     * unlock would be stored for them as well. Such an unlock would never be needed and would just
+     * clutter the unlock report. The capability is checked in the very context in which core checks
+     * it, which is what \core_availability\info::get_context() returns for activities and sections.
+     *
      * @param int $userid User id.
+     * @param info $info Availability info object.
      * @return bool
      */
-    public function can_store_unlock(int $userid): bool {
-        return $userid > 0 && !isguestuser($userid);
+    public function can_store_unlock(int $userid, info $info): bool {
+        if ($userid <= 0 || isguestuser($userid)) {
+            return false;
+        }
+
+        return !has_capability('moodle/course:ignoreavailabilityrestrictions', $info->get_context(), $userid);
     }
 
     /**
