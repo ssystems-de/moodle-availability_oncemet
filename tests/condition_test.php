@@ -632,6 +632,70 @@ final class condition_test extends \advanced_testcase {
     }
 
     /**
+     * Tests that no unlock is stored on an activity for a user who may ignore availability restrictions.
+     */
+    public function test_no_unlock_for_user_who_ignores_restrictions_on_activity(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $teacher = $generator->create_and_enrol($course, 'editingteacher', ['email' => 'foo@bar.de']);
+        $page = $generator->create_module('page', ['course' => $course->id]);
+        $cm = get_fast_modinfo($course, $teacher->id)->get_cm($page->cmid);
+        $info = new info_module($cm);
+
+        // The teacher meets the nested restrictions, so the restriction is met, but nothing is stored.
+        $cond = $this->create_profile_condition('foo@bar.de');
+        $this->assertTrue($cond->is_available(false, $info, true, $teacher->id));
+        $this->assertFalse($DB->record_exists('availability_oncemet', ['userid' => $teacher->id]));
+    }
+
+    /**
+     * Tests that no unlock is stored on a section for a user who may ignore availability restrictions.
+     */
+    public function test_no_unlock_for_user_who_ignores_restrictions_on_section(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course(['numsections' => 2]);
+        $teacher = $generator->create_and_enrol($course, 'editingteacher', ['email' => 'foo@bar.de']);
+        $section = get_fast_modinfo($course, $teacher->id)->get_section_info(1);
+        $info = new mock_info_section($teacher->id, $section);
+
+        $cond = $this->create_profile_condition('foo@bar.de');
+        $this->assertTrue($cond->is_available(false, $info, true, $teacher->id));
+        $this->assertFalse($DB->record_exists('availability_oncemet', ['userid' => $teacher->id]));
+    }
+
+    /**
+     * Tests that the capability to ignore availability restrictions is checked in the activity context.
+     */
+    public function test_unlock_stored_when_ignoring_restrictions_is_prohibited_on_activity(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $teacher = $generator->create_and_enrol($course, 'editingteacher', ['email' => 'foo@bar.de']);
+        $page = $generator->create_module('page', ['course' => $course->id]);
+        $context = \context_module::instance($page->cmid);
+        $roleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher'], MUST_EXIST);
+        assign_capability('moodle/course:ignoreavailabilityrestrictions', CAP_PROHIBIT, $roleid, $context->id);
+        $cm = get_fast_modinfo($course, $teacher->id)->get_cm($page->cmid);
+        $info = new info_module($cm);
+
+        // The teacher is subject to the restriction on this very activity, so the unlock is needed.
+        $cond = $this->create_profile_condition('foo@bar.de');
+        $this->assertTrue($cond->is_available(false, $info, true, $teacher->id));
+        $this->assertTrue($DB->record_exists('availability_oncemet', [
+            'userid' => $teacher->id,
+            'cmid' => $cm->id,
+        ]));
+    }
+
+    /**
      * Tests AND group requires all children before storing unlock.
      */
     public function test_and_group_requires_all_children(): void {
