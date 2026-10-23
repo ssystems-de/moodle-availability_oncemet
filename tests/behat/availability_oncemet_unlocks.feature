@@ -196,3 +196,35 @@ Feature: Look at and reset the unlocks of a Once met restriction
     And I expand all fieldsets
     Then I should see "Email address" in the ".availability_oncemet" "css_element"
     And I should not see "Review existing unlocks"
+
+  # Teachers and managers may ignore availability restrictions, so they pass the restriction anyway
+  # and an unlock would be of no use to them. Core evaluates the restriction for them all the same.
+  Scenario: Users who may ignore availability restrictions do not gain an unlock
+    Given the following "activities" exist:
+      | activity | course | section | name   | idnumber |
+      | page     | C1     | 1       | Page 2 | PAGE2    |
+    And the following "availability_oncemet > activity restrictions" exist:
+      | activity | instanceid | nested                                                                              |
+      | PAGE2    | UNLOCK4    | {"op":"&","c":[{"type":"profile","sf":"email","op":"endswith","v":"@example.com"}]} |
+    # All three users meet the nested restriction and get to the activity, the learner by meeting it
+    # and the teacher and the manager by ignoring it, but only the learner needs an unlock for it.
+    And I am on the "Course 1" course page logged in as "learner3"
+    And "Page 2" "link" should exist in the "region-main" "region"
+    And I am on the "Page 2" "page activity" page
+    And I should see "Page 2"
+    And I log out
+    And I am on the "Course 1" course page logged in as "manager1"
+    And "Page 2" "link" should exist in the "region-main" "region"
+    And I am on the "Page 2" "page activity" page
+    And I should see "Page 2"
+    And I log out
+    And I am on the "Course 1" course page logged in as "teacher1"
+    And "Page 2" "link" should exist in the "region-main" "region"
+    And I am on the "Page 2" "page activity" page
+    And I should see "Page 2"
+    When I am on the "PAGE2 > UNLOCK4" "availability_oncemet > activity unlocks report" page
+    Then the following should exist in the "availability-oncemet-unlocks" table:
+      | First name | Last name |
+      | Clara      | Clark     |
+    And I should not see "Teacher" in the "availability-oncemet-unlocks" "table"
+    And I should not see "Manager" in the "availability-oncemet-unlocks" "table"
