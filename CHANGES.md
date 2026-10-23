@@ -4,7 +4,7 @@ moodle-availability_oncemet
 Changes
 -------
 
-### Unreleased
+### v5.1-r3
 
 * 2026-10-23 - Bugfix: Do not store permanent unlocks for users who may ignore availability restrictions (teachers and managers by default) as they pass the restriction anyway, resolves #2.
   Please note: Unlocks which have already been stored for such users are not removed automatically by this fix as they could only assess the roles at the moment of the upgrade, but do not know about the roles when the unlocks were set initially. If you want to get rid of them, you will have to reset all unlocks of a particular activity in its "Existing unlocks" report.
