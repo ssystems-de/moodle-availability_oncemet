@@ -28,12 +28,13 @@
  */
 
 use availability_oncemet\condition;
+use availability_oncemet\local\report_info_module;
+use availability_oncemet\local\report_info_section;
 use availability_oncemet\local\unlocks;
 use core\output\checkbox_toggleall;
 use core\output\html_writer;
 use core\output\notification;
-use core_availability\info_module;
-use core_availability\info_section;
+use core_availability\info;
 use core_table\flexible_table;
 
 require(__DIR__ . '/../../../config.php');
@@ -114,11 +115,11 @@ $PAGE->navbar->add(get_string('unlocks_heading', 'availability_oncemet'), $pageu
 // the request which resets an unlock and redirects straight away.
 if ($cm !== null) {
     $itemname = format_string($cm->name);
-    $info = new info_module($cm);
+    $info = new report_info_module($cm);
 } else {
     $section = get_fast_modinfo($course)->get_section_info_by_id($sectionid, MUST_EXIST);
     $itemname = get_section_name($course, $sectionrecord);
-    $info = new info_section($section);
+    $info = new report_info_section($section);
 }
 
 // Which of the Once met restrictions of an item a report is about cannot be told from the item alone,
@@ -127,12 +128,23 @@ if ($cm !== null) {
 // it. A NOT which the restriction may sit under is left out of that description on purpose: it says
 // which restriction this is, not how the surrounding tree uses it.
 try {
-    $instancedescription = (new condition($instance))->get_description(true, false, $info);
+    $restriction = new condition($instance);
 } catch (coding_exception $e) {
     // A stored restriction which \availability_oncemet\condition refuses to build, because it lost
     // its nested restrictions or carries an identifier which does not fit the unlock table, cannot be
     // described either. That must not take the report down, though: its unlock records are still
-    // there, and cleaning them up is exactly what somebody would come here for.
+    // there, and cleaning them up is exactly what somebody would come here for. Only the building is
+    // guarded like this, so that a restriction which fails to be described still shows up as an error.
+    $restriction = null;
+}
+
+if ($restriction !== null) {
+    // Core does not describe a restriction in final HTML. Activity names, grade item names and other
+    // names which need filtering are left as placeholders, which are only resolved here. Without this,
+    // an activity name vanishes from a completion condition and a grade condition shows a bare grade
+    // item id.
+    $instancedescription = info::format_info($info->describe_restriction($restriction), $course);
+} else {
     $instancedescription = get_string('error_notconfigured', 'availability_oncemet');
 }
 
@@ -199,8 +211,8 @@ echo $OUTPUT->heading(get_string('unlocks_heading', 'availability_oncemet'));
 
 // The sentence which introduces the report and the restriction which it is about are shown as one
 // block, so that there is no doubt which of the Once met restrictions of the item the list below
-// belongs to. The description carries the markup which core builds for a restriction, so it goes
-// out as it is.
+// belongs to. The description carries the markup which core builds for a restriction and has been
+// formatted for output above, so it goes out as it is.
 echo html_writer::div(
     html_writer::tag('p', get_string('unlocks_intro', 'availability_oncemet', $itemname)) . $instancedescription,
     'availability-oncemet-unlockrestriction mb-5 border rounded p-3'

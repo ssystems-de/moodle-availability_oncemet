@@ -48,7 +48,8 @@
  *
  * "nested" holds the restriction tree to wrap, written the way the form stores it. To point at an
  * activity from within it, for instance from a completion condition, use "##cmid:IDNUMBER##" in
- * place of the course module id.
+ * place of the course module id. To point at the grade item of an activity, for instance from a
+ * grade condition, use "##gradeitemid:IDNUMBER##" in place of the grade item id.
  *
  * "profile" is a shorthand for the common case of comparing user profile fields, given as a comma
  * separated list of "field = value" pairs which all have to be met. It saves spelling out the
