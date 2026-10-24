@@ -289,13 +289,18 @@ class availability_oncemet_generator extends component_generator_base {
     }
 
     /**
-     * Replaces activity references within a nested restriction tree by the course module id.
+     * Replaces activity references within a nested restriction tree by the ids they stand for.
      *
      * A nested restriction which points at another activity, such as the completion condition,
      * stores a course module id as a number. That id does not exist yet while a feature file is
      * being written, so the tree names the activity by its idnumber instead:
      *
      *     {"op":"&","c":[{"type":"completion","cm":"##cmid:PAGE1##","e":1}]}
+     *
+     * The grade condition stores the id of a grade item in the same way. The activity which owns
+     * the grade item is named by its idnumber, and its main grade item is the one which is used:
+     *
+     *     {"op":"&","c":[{"type":"grade","id":"##gradeitemid:ASSIGN1##","min":50}]}
      *
      * The quotes around the placeholder are part of what is replaced, so that the result is the
      * bare number which the condition expects.
@@ -304,7 +309,7 @@ class availability_oncemet_generator extends component_generator_base {
      * @return string The same tree with all placeholders resolved.
      */
     protected function resolve_placeholders(string $json): string {
-        return preg_replace_callback('/"##cmid:([^#"]+)##"/', function (array $matches): string {
+        $json = preg_replace_callback('/"##cmid:([^#"]+)##"/', function (array $matches): string {
             global $DB;
 
             if (!$cmid = $DB->get_field('course_modules', 'id', ['idnumber' => $matches[1]])) {
@@ -312,6 +317,23 @@ class availability_oncemet_generator extends component_generator_base {
             }
 
             return (string) $cmid;
+        }, $json);
+
+        return preg_replace_callback('/"##gradeitemid:([^#"]+)##"/', function (array $matches): string {
+            global $DB;
+
+            $sql = "SELECT gi.id
+                      FROM {course_modules} cm
+                      JOIN {modules} m ON m.id = cm.module
+                      JOIN {grade_items} gi ON gi.itemtype = 'mod' AND gi.itemmodule = m.name
+                                           AND gi.iteminstance = cm.instance AND gi.itemnumber = 0
+                     WHERE cm.idnumber = :idnumber";
+            if (!$gradeitemid = $DB->get_field_sql($sql, ['idnumber' => $matches[1]])) {
+                throw new coding_exception('The grade item of the activity with idnumber "' . $matches[1] .
+                    '" could not be found.');
+            }
+
+            return (string) $gradeitemid;
         }, $json);
     }
 }

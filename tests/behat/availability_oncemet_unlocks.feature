@@ -82,6 +82,30 @@ Feature: Look at and reset the unlocks of a Once met restriction
     And I should see "nobody@example.com" in the ".availability-oncemet-unlockrestriction" "css_element"
     And I should not see "Rijeka" in the ".availability-oncemet-unlockrestriction" "css_element"
 
+  # Core describes the activity which a completion condition points at by a placeholder, which only
+  # turns into the name of the activity once the description has been formatted for output.
+  Scenario: The report names the activity which a nested completion condition points at
+    Given the following "activities" exist:
+      | activity | course | section | name   | idnumber |
+      | page     | C1     | 1       | Page 2 | PAGE2    |
+    And the following "availability_oncemet > activity restrictions" exist:
+      | activity | instanceid | nested                                                             |
+      | PAGE1    | UNLOCK2    | {"op":"&","c":[{"type":"completion","cm":"##cmid:PAGE2##","e":1}]} |
+    When I am on the "PAGE1 > UNLOCK2" "availability_oncemet > activity unlocks report" page logged in as "teacher1"
+    Then I should see "Page 2" in the ".availability-oncemet-unlockrestriction" "css_element"
+
+  # The same goes for the grade item which a grade condition points at. Without formatting, the
+  # description would carry the bare id of the grade item instead of its name.
+  Scenario: The report names the grade item which a nested grade condition points at
+    Given the following "activities" exist:
+      | activity | course | section | name         | idnumber |
+      | assign   | C1     | 1       | Assignment 1 | ASSIGN1  |
+    And the following "availability_oncemet > activity restrictions" exist:
+      | activity | instanceid | nested                                                                    |
+      | PAGE1    | UNLOCK2    | {"op":"&","c":[{"type":"grade","id":"##gradeitemid:ASSIGN1##","min":50}]} |
+    When I am on the "PAGE1 > UNLOCK2" "availability_oncemet > activity unlocks report" page logged in as "teacher1"
+    Then I should see "Assignment 1" in the ".availability-oncemet-unlockrestriction" "css_element"
+
   Scenario: The report of a course section restriction lists its own unlocks
     Given the following "availability_oncemet > section restrictions" exist:
       | course | section | instanceid | profile                    |
