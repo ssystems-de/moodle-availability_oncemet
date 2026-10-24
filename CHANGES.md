@@ -4,6 +4,10 @@ moodle-availability_oncemet
 Changes
 -------
 
+### Unreleased
+
+* 2026-10-24 - Bugfix: Describe the restriction on the "Existing unlocks" report properly. A restriction with a nested activity completion condition was shown as not configured, and the names of activities and grade items which nested restrictions point at were left out or shown as a bare id.
+
 ### v5.2-r3
 
 * 2026-10-23 - Bugfix: Do not store permanent unlocks for users who may ignore availability restrictions (teachers and managers by default) as they pass the restriction anyway, resolves #2.
