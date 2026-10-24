@@ -28,17 +28,6 @@
 function xmldb_availability_oncemet_uninstall() {
     global $DB, $OUTPUT;
 
-    $dbman = $DB->get_manager();
-
-    // If the unlock table still exists.
-    // Moodle drops the tables from db/install.xml on its own after this function has run, but we drop it
-    // explicitly to make sure that no unlock record outlives the plugin even if that ever changes.
-    $table = new xmldb_table('availability_oncemet');
-    if ($dbman->table_exists($table)) {
-        // Remove it.
-        $dbman->drop_table($table);
-    }
-
     // Count the activities and course sections which still hold a Once met restriction.
     // These are not touched here as removing them would silently change the access restrictions of courses.
     $like = $DB->sql_like('availability', ':pattern', false, false);
