@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2026-10-24 - Cleanup: Remove the redundant drop of the unlock table from the uninstaller as Moodle core drops the tables from db/install.xml on its own.
 * 2026-10-24 - Bugfix: Describe the restriction on the "Existing unlocks" report properly. A restriction with a nested activity completion condition was shown as not configured, and the names of activities and grade items which nested restrictions point at were left out or shown as a bare id.
 
 ### v5.1-r3
