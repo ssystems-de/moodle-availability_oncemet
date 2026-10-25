@@ -25,6 +25,7 @@
 namespace availability_oncemet\local;
 
 use availability_oncemet\condition;
+use availability_oncemet\event\unlock_reset;
 
 /**
  * Availability OnceMet - Unlock report helpers
@@ -157,14 +158,20 @@ class unlocks {
 
         // Users who do not hold an unlock at all may well be among the selected ones, as the report
         // can be submitted from a page which somebody else has changed in the meantime, so what was
-        // really removed is counted rather than assumed.
-        $removed = $DB->count_records_select('availability_oncemet', $select, $params);
+        // really removed is read rather than assumed. It is what is counted and logged below.
+        $removed = $DB->get_records_select('availability_oncemet', $select, $params);
         $DB->delete_records_select('availability_oncemet', $select, $params);
 
         // The cache of \availability_oncemet\condition would otherwise keep handing out the access
         // which was just taken away for the rest of the request.
         condition::wipe_static_cache();
 
-        return $removed;
+        // The reset can take the access to the item away from the users, so each of them gets an
+        // entry in the logs which tells who did it.
+        foreach ($removed as $record) {
+            unlock_reset::create_from_record($record)->trigger();
+        }
+
+        return count($removed);
     }
 }
