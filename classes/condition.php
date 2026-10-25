@@ -366,7 +366,7 @@ class condition extends \core_availability\condition {
         ];
 
         try {
-            $DB->insert_record('availability_oncemet', $record);
+            $record->id = $DB->insert_record('availability_oncemet', $record);
         } catch (\dml_write_exception $e) {
             // A parallel request has stored the very same unlock between our check and this insert.
             // The unique index rejects the duplicate, which is exactly the outcome we want anyway.
@@ -384,6 +384,10 @@ class condition extends \core_availability\condition {
         }
 
         self::remember_unlock($userid, $courseid, $cmid, $sectionid, $this->instanceid);
+
+        // Only the request which really stored the unlock gets here, so that an unlock which a parallel
+        // request stored is not logged twice.
+        event\unlock_gained::create_from_record($record)->trigger();
     }
 
     /**
