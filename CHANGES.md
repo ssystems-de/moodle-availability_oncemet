@@ -4,7 +4,7 @@ moodle-availability_oncemet
 Changes
 -------
 
-### Unreleased
+### v5.3-r2
 
 * 2026-10-24 - Improvement: Log the gaining and the reset of a permanent unlock with the new events "Once met unlock gained" and "Once met unlock reset". Each event is about the unlock of one user, so admins can trace who reset the unlock of a particular learner and when that learner had gained it.
 * 2026-10-24 - Cleanup: Remove the redundant drop of the unlock table from the uninstaller as Moodle core drops the tables from db/install.xml on its own.
