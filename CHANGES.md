@@ -4,7 +4,7 @@ moodle-availability_oncemet
 Changes
 -------
 
-### Unreleased
+### v5.3-r3
 
 * 2026-11-16 - Improvement: Respect the separate groups mode of the course on the "Existing unlocks" report. Users without the moodle/site:accessallgroups capability only see and reset the unlocks of the members of their own groups there.
 
