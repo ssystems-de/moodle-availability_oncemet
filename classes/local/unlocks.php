@@ -78,6 +78,42 @@ class unlocks {
     }
 
     /**
+     * Returns the groups which the unlock report of a course is limited to for the current user.
+     *
+     * A user who may not access all groups only gets to see the members of the own groups in a course
+     * which runs in separate groups mode, and the unlock report is a list of users like any other.
+     *
+     * It is the group mode of the course which decides here, even for a restriction which sits on an
+     * activity. Most of the items which are restricted are resources, which have no group mode of their
+     * own, so the group mode of the activity would let the report go unfiltered in exactly the courses
+     * which keep their groups apart. The question which is answered here is whom the user may see in
+     * this course, which is what the participants page asks as well.
+     *
+     * @param \stdClass $course Course which the restriction belongs to.
+     * @param \context $context Context of the item which the restriction sits on.
+     * @return int[]|null Ids of the groups whose members may be shown, which is an empty list for a
+     *                    user who is in none of the groups, or null if the report is not limited.
+     */
+    public static function get_visible_groupids(\stdClass $course, \context $context): ?array {
+        global $USER;
+
+        if (groups_get_course_groupmode($course) != SEPARATEGROUPS) {
+            return null;
+        }
+
+        if (has_capability('moodle/site:accessallgroups', $context)) {
+            return null;
+        }
+
+        // The groups of the course which the user is a member of. If the course has a default grouping,
+        // only the groups of that grouping count, which is how core picks the groups of a course as well.
+        $owngroups = groups_get_all_groups($course->id, $USER->id, $course->defaultgroupingid);
+
+        // The groups come back keyed by their id, and the ids are all that the caller needs.
+        return array_map('intval', array_keys($owngroups));
+    }
+
+    /**
      * Returns the unlocks which one Once met restriction holds, together with the users who hold them.
      *
      * @param int $cmid Course module id, 0 if the restriction sits on a course section.
@@ -86,6 +122,8 @@ class unlocks {
      * @param string $where Additional select clause, empty for all unlocks of the restriction.
      * @param array $whereparams Parameters of that select clause.
      * @param string $sort Order by clause, empty for the order of the database.
+     * @param int[]|null $groupids Groups which the users have to be a member of, as returned by
+     *                             {@see self::get_visible_groupids()}, or null for the users of all groups.
      * @return \stdClass[] Unlock records, keyed by their id, carrying the user id, the name fields of
      *                     the user and the time of the unlock as 'timeunlocked'.
      */
@@ -95,9 +133,24 @@ class unlocks {
         string $instanceid,
         string $where = '',
         array $whereparams = [],
-        string $sort = ''
+        string $sort = '',
+        ?array $groupids = null
     ): array {
         global $DB;
+
+        // A user who is limited to the own groups and is in none of them gets to see nobody.
+        if ($groupids === []) {
+            return [];
+        }
+
+        if ($groupids !== null) {
+            [$groupsql, $groupparams] = $DB->get_in_or_equal($groupids, SQL_PARAMS_NAMED, 'group');
+            $groupwhere = 'EXISTS (SELECT 1
+                                     FROM {groups_members} gm
+                                    WHERE gm.userid = o.userid AND gm.groupid ' . $groupsql . ')';
+            $where = $where !== '' ? $where . ' AND ' . $groupwhere : $groupwhere;
+            $whereparams += $groupparams;
+        }
 
         // The whole set of name fields is read rather than just the two which the report shows, so
         // that the records can be handed to fullname() for the labels which screen readers get.
@@ -140,12 +193,16 @@ class unlocks {
      * @param int $sectionid Course section id, 0 if the restriction sits on an activity.
      * @param string $instanceid Once met instance id.
      * @param int[] $userids Users whose unlock is to be reset.
+     * @param int[]|null $groupids Groups which the users have to be a member of, as returned by
+     *                             {@see self::get_visible_groupids()}, or null for the users of all groups.
+     *                             The unlocks of users who are in none of these groups are left alone.
      * @return int Number of unlocks which were removed.
      */
-    public static function reset(int $cmid, int $sectionid, string $instanceid, array $userids): int {
+    public static function reset(int $cmid, int $sectionid, string $instanceid, array $userids, ?array $groupids = null): int {
         global $DB;
 
-        if (empty($userids)) {
+        // Somebody who is limited to the own groups and is in none of them has nobody to reset.
+        if (empty($userids) || $groupids === []) {
             return 0;
         }
 
@@ -155,6 +212,14 @@ class unlocks {
         $params['instanceid'] = $instanceid;
 
         $select = 'cmid = :cmid AND sectionid = :sectionid AND availabilityuuid = :instanceid AND userid ' . $insql;
+
+        // The user ids come straight from the request, so they are held against the groups once more
+        // here: what the report does not show must not be within reach of a hand-made request either.
+        if ($groupids !== null) {
+            [$groupsql, $groupparams] = $DB->get_in_or_equal($groupids, SQL_PARAMS_NAMED, 'group');
+            $select .= ' AND userid IN (SELECT gm.userid FROM {groups_members} gm WHERE gm.groupid ' . $groupsql . ')';
+            $params += $groupparams;
+        }
 
         // Users who do not hold an unlock at all may well be among the selected ones, as the report
         // can be submitted from a page which somebody else has changed in the meantime, so what was
