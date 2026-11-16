@@ -4,6 +4,10 @@ moodle-availability_oncemet
 Changes
 -------
 
+### Unreleased
+
+* 2026-11-16 - Improvement: Respect the separate groups mode of the course on the "Existing unlocks" report. Users without the moodle/site:accessallgroups capability only see and reset the unlocks of the members of their own groups there.
+
 ### v5.2-r4
 
 * 2026-10-24 - Improvement: Log the gaining and the reset of a permanent unlock with the new events "Once met unlock gained" and "Once met unlock reset". Each event is about the unlock of one user, so admins can trace who reset the unlock of a particular learner and when that learner had gained it.

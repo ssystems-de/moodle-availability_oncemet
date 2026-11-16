@@ -56,10 +56,16 @@ Once met restrictions which have already been added continue to apply and can st
 This capability controls who is able to see which users have already unlocked a Once met condition permanently.
 It is assigned to the manager and to the editing teacher role by default.
 
+The unlock report respects the group mode of the course: If the course is set to separate groups, users who do not hold the moodle/site:accessallgroups capability only see the unlocks of the members of their own groups, and nothing at all if they are not a member of any group.
+Please note that it is always the group mode of the course which counts here, even if the Once met condition sits on an activity with a group mode of its own.
+The manager and the editing teacher role hold moodle/site:accessallgroups by default and therefore see all unlocks. If you assign this capability to another role and want that role to see all unlocks of a course with separate groups, you have to assign moodle/site:accessallgroups to it as well.
+
 ### availability/oncemet:resetunlock
 
 This capability controls who is able to take a permanent unlock away from users again.
 It is assigned to the manager and to the editing teacher role by default.
+
+In a course with separate groups, users who do not hold the moodle/site:accessallgroups capability can only reset the unlocks of the members of their own groups, just as they only see these in the unlock report.
 
 This capability is of no use without availability/oncemet:viewunlocks, as the unlocks are reset from the very report which that capability opens.
 
