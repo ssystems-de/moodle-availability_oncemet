@@ -117,6 +117,47 @@ Feature: Look at and reset the unlocks of a Once met restriction
     Then I should see "Clara" in the "availability-oncemet-unlocks" "table"
     And I should not see "Anna" in the "availability-oncemet-unlocks" "table"
 
+  # The editing teacher holds moodle/site:accessallgroups by default, so the capability is taken away
+  # here to get a user who may open the report but is limited to the own groups.
+  Scenario: The report is limited to the own groups in a course with separate groups
+    Given the following "permission overrides" exist:
+      | capability                  | permission | role           | contextlevel | reference |
+      | moodle/site:accessallgroups | Prohibit   | editingteacher | Course       | C1        |
+    And the following "groups" exist:
+      | name    | course | idnumber |
+      | Group 1 | C1     | G1       |
+      | Group 2 | C1     | G2       |
+    And the following "group members" exist:
+      | user     | group |
+      | teacher1 | G1    |
+      | learner1 | G1    |
+      | learner2 | G2    |
+    And the following "availability_oncemet > unlocks" exist:
+      | user     | activity | instanceid |
+      | learner3 | PAGE1    | UNLOCK1    |
+    # As long as the course does not keep its groups apart, the groups do not matter.
+    When I am on the "PAGE1 > UNLOCK1" "availability_oncemet > activity unlocks report" page logged in as "teacher1"
+    Then I should see "Anna" in the "availability-oncemet-unlocks" "table"
+    And I should see "Bernd" in the "availability-oncemet-unlocks" "table"
+    And I should see "Clara" in the "availability-oncemet-unlocks" "table"
+    And I should not see "Only the unlocks of the members of your own groups are shown here"
+    And I am on the "Course 1" "course editing" page logged in as "admin"
+    And I expand all fieldsets
+    And I set the field "Group mode" to "Separate groups"
+    And I press "Save and display"
+    And I am on the "PAGE1 > UNLOCK1" "availability_oncemet > activity unlocks report" page logged in as "teacher1"
+    And I should see "Only the unlocks of the members of your own groups are shown here"
+    And I should see "Anna" in the "availability-oncemet-unlocks" "table"
+    # Bernd is in another group and Clara is in no group at all.
+    And I should not see "Bernd" in the "availability-oncemet-unlocks" "table"
+    And I should not see "Clara" in the "availability-oncemet-unlocks" "table"
+    # Whoever may access all groups still gets the complete list, and no hint about a limit.
+    And I am on the "PAGE1 > UNLOCK1" "availability_oncemet > activity unlocks report" page logged in as "manager1"
+    And I should not see "Only the unlocks of the members of your own groups are shown here"
+    And I should see "Anna" in the "availability-oncemet-unlocks" "table"
+    And I should see "Bernd" in the "availability-oncemet-unlocks" "table"
+    And I should see "Clara" in the "availability-oncemet-unlocks" "table"
+
   # A report which was opened without a return url, as it is the case for these scenarios, falls back
   # to the course page. The round trip from the availability form is checked further down.
   Scenario: The back button falls back to the course page
