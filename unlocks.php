@@ -86,6 +86,10 @@ $backurl = $returnurl !== '' ? new moodle_url($returnurl) : course_get_url($cour
 
 $canreset = has_capability('availability/oncemet:resetunlock', $context);
 
+// In a course which keeps its groups apart, a user who may not access all groups only gets to deal
+// with the members of the own groups. That holds for the list and for the reset alike.
+$groupids = unlocks::get_visible_groupids($course, $context);
+
 // Reset the unlocks of the selected users, if that is what this request is about. The report is
 // shown again afterwards, so that the outcome can be seen right where the reset was asked for.
 if (optional_param('reset', 0, PARAM_BOOL)) {
@@ -95,7 +99,13 @@ if (optional_param('reset', 0, PARAM_BOOL)) {
     // An empty selection cannot arrive from the report itself, as its button stays disabled until a
     // user is ticked, so this is only reached by a hand-made request. Removing nothing is exactly
     // what such a request asks for, and the message below says as much.
-    $removed = unlocks::reset($cmid, $sectionid, $instanceid, optional_param_array('unlockuserids', [], PARAM_INT));
+    $removed = unlocks::reset(
+        $cmid,
+        $sectionid,
+        $instanceid,
+        optional_param_array('unlockuserids', [], PARAM_INT),
+        $groupids
+    );
     redirect(
         $pageurl,
         get_string('unlocks_resetdone', 'availability_oncemet', $removed),
@@ -199,7 +209,8 @@ $records = unlocks::get_records(
     $instanceid,
     implode(' AND ', $where),
     $whereparams,
-    $table->get_sql_sort()
+    $table->get_sql_sort(),
+    $groupids
 );
 
 // The bulk controls are of no use without rows to tick, and the form which carries them would submit
@@ -217,6 +228,16 @@ echo html_writer::div(
     html_writer::tag('p', get_string('unlocks_intro', 'availability_oncemet', $itemname)) . $instancedescription,
     'availability-oncemet-unlockrestriction mb-5 border rounded p-3'
 );
+
+// A list which is cut down to the own groups looks just like a complete one, so the reader is told
+// that there may be more unlocks than the ones which are shown.
+if ($groupids !== null) {
+    echo $OUTPUT->notification(
+        get_string('unlocks_groupnotice', 'availability_oncemet'),
+        notification::NOTIFY_INFO,
+        false
+    );
+}
 
 echo $OUTPUT->initials_bar($table->get_initial_first(), 'firstinitial', get_string('firstname'), 'tifirst', $pageurl);
 echo $OUTPUT->initials_bar($table->get_initial_last(), 'lastinitial', get_string('lastname'), 'tilast', $pageurl);

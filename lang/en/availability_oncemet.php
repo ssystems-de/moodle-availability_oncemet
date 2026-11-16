@@ -55,6 +55,7 @@ $string['uninstaller_remainingrestrictions'] = 'There are still {$a} activities 
 $string['unlocks_button'] = 'Review existing unlocks';
 $string['unlocks_column_select'] = 'Select';
 $string['unlocks_column_time'] = 'Unlocked at';
+$string['unlocks_groupnotice'] = 'This course uses separate groups. Only the unlocks of the members of your own groups are shown here.';
 $string['unlocks_heading'] = 'Existing unlocks';
 $string['unlocks_intro'] = 'This report lists the users who have permanently unlocked the following Once met restriction of "{$a}" by fulfilling its nested restrictions at least once:';
 $string['unlocks_reset'] = 'Reset unlock';
